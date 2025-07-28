@@ -1,5 +1,7 @@
 package com.example.maze;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -83,5 +85,17 @@ public class MainActivity extends AppCompatActivity {
             }, i * delay);
         }
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        if (!prefs.getBoolean("loggedIn", false)) {
+            Intent intent = new Intent(this, LoginActivity.class);
+            startActivity(intent);
+            finish();
+        }
+    }
+
 }
 
