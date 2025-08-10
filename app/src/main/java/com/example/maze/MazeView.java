@@ -17,9 +17,10 @@ public class MazeView extends View {
     private List<Cell> path;
     private List<Cell> animatedSteps = new ArrayList<>();
     private List<Cell> userSteps = new ArrayList<>();
-    private Paint wallPaint, pathPaint, animPaint, borderPaint, playerPaint, userPathPaint;
+    private Paint wallPaint, pathPaint, borderPaint, playerPaint, userPathPaint, solvingPathPaint;
     private Cell playerPosition;
     private int cellSize;
+    private boolean solvingMode = false;
 
     public MazeView(Context context, Maze maze, List<Cell> path) {
         super(context);
@@ -37,18 +38,23 @@ public class MazeView extends View {
         borderPaint.setAntiAlias(true);
 
         pathPaint = new Paint();
-        pathPaint.setColor(Color.parseColor("#2C3E50"));
+        pathPaint.setColor(Color.parseColor("#8B5A2B")); // fallback
         pathPaint.setStyle(Paint.Style.FILL);
         pathPaint.setAntiAlias(true);
 
-        playerPaint = new Paint();
-        playerPaint.setColor(Color.parseColor("#3A506B")); // Dot color updated
-        playerPaint.setAntiAlias(true);
+        solvingPathPaint = new Paint();
+        solvingPathPaint.setColor(Color.parseColor("#8B5A2B"));// or #AF6E4D or #8B5A2B or #FFDDA0 or #AD6F69
+        solvingPathPaint.setStyle(Paint.Style.FILL);
+        solvingPathPaint.setAntiAlias(true);
 
         userPathPaint = new Paint();
-        userPathPaint.setColor(Color.parseColor("#2C3E50"));
+        userPathPaint.setColor(Color.parseColor("#2C3E50")); // deep blue for user
         userPathPaint.setStyle(Paint.Style.FILL);
         userPathPaint.setAntiAlias(true);
+
+        playerPaint = new Paint();
+        playerPaint.setColor(Color.parseColor("#7D8F69")); // player icon  #A39887 or #D4A037
+        playerPaint.setAntiAlias(true);
 
         playerPosition = maze.grid[0][0];
         userSteps.add(playerPosition);
@@ -66,6 +72,7 @@ public class MazeView extends View {
         int offsetX = (getWidth() - mazeWidth) / 2;
         int offsetY = (getHeight() - mazeHeight) / 2;
 
+        // Draw maze walls
         for (int r = 0; r < maze.rows; r++) {
             for (int c = 0; c < maze.cols; c++) {
                 Cell cell = maze.grid[r][c];
@@ -82,20 +89,24 @@ public class MazeView extends View {
                     canvas.drawLine(x, y + cellSize, x, y, wallPaint);
             }
         }
-
         // Draw user's path
         for (Cell cell : userSteps) {
             int x = offsetX + cell.col * cellSize;
             int y = offsetY + cell.row * cellSize;
-            canvas.drawRoundRect(new RectF(x + 10, y + 10, x + cellSize - 10, y + cellSize - 10), 12f, 12f, userPathPaint);
+            canvas.drawRoundRect(
+                    new RectF(x + 10, y + 10, x + cellSize - 10, y + cellSize - 10),
+                    12f, 12f, userPathPaint);
         }
 
-        // Draw animated solution path if needed
+
+        // Draw system path
         if (animatedSteps != null) {
             for (Cell cell : animatedSteps) {
                 int x = offsetX + cell.col * cellSize;
                 int y = offsetY + cell.row * cellSize;
-                canvas.drawRoundRect(new RectF(x + 6, y + 6, x + cellSize - 6, y + cellSize - 6), 20f, 20f, pathPaint);
+                canvas.drawRoundRect(
+                        new RectF(x + 6, y + 6, x + cellSize - 6, y + cellSize - 6),
+                        20f, 20f, solvingMode ? solvingPathPaint : pathPaint);
             }
         }
 
@@ -124,6 +135,11 @@ public class MazeView extends View {
 
     public void clearAnimatedSteps() {
         animatedSteps.clear();
+    }
+
+    public void setSolvingMode(boolean mode) {
+        this.solvingMode = mode;
+        invalidate();
     }
 
     private float downX, downY;
@@ -160,27 +176,76 @@ public class MazeView extends View {
 
         switch (direction) {
             case "UP":
-                if (!playerPosition.walls.get(Direction.TOP) && row > 0) next = maze.grid[row - 1][col];
+                if (!playerPosition.walls.get(Direction.TOP) && row > 0)
+                    next = maze.grid[row - 1][col];
                 break;
             case "DOWN":
-                if (!playerPosition.walls.get(Direction.BOTTOM) && row < maze.rows - 1) next = maze.grid[row + 1][col];
+                if (!playerPosition.walls.get(Direction.BOTTOM) && row < maze.rows - 1)
+                    next = maze.grid[row + 1][col];
                 break;
             case "LEFT":
-                if (!playerPosition.walls.get(Direction.LEFT) && col > 0) next = maze.grid[row][col - 1];
+                if (!playerPosition.walls.get(Direction.LEFT) && col > 0)
+                    next = maze.grid[row][col - 1];
                 break;
             case "RIGHT":
-                if (!playerPosition.walls.get(Direction.RIGHT) && col < maze.cols - 1) next = maze.grid[row][col + 1];
+                if (!playerPosition.walls.get(Direction.RIGHT) && col < maze.cols - 1)
+                    next = maze.grid[row][col + 1];
                 break;
         }
 
         if (next != null) {
-            playerPosition = next;
-            userSteps.add(playerPosition);
-            invalidate();
+            // Backtracking logic
+            if (userSteps.size() >= 2 && next == userSteps.get(userSteps.size() - 2)) {
+                userSteps.remove(userSteps.size() - 1);
+            } else {
+                userSteps.add(next);
+            }
 
-            if (playerPosition == maze.grid[maze.rows - 1][maze.cols - 1]) {
-                Toast.makeText(getContext(), "Maze Solved!", Toast.LENGTH_SHORT).show();
+            playerPosition = next;
+            solvingMode = false;
+            invalidate();
+            checkIfMazeSolved();
+        }
+    }
+
+    private void checkIfMazeSolved() {
+        if (playerPosition == maze.grid[maze.rows - 1][maze.cols - 1]) {
+            Toast.makeText(getContext(), "Maze Solved!", Toast.LENGTH_SHORT).show();
+            if (mazeSolvedListener != null) {
+                mazeSolvedListener.onMazeSolved();
+            }
+
+            // Compare path lengths
+            if (path != null && !path.isEmpty()) {
+                int systemSteps = path.size();
+                int userStepsCount = userSteps.size();
+
+                if (userStepsCount == systemSteps) {
+                    Toast.makeText(getContext(), "You found the shortest path!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(getContext(), "You solved it in " + userStepsCount +
+                            " steps. Optimal path: " + systemSteps + " steps.", Toast.LENGTH_LONG).show();
+                }
             }
         }
+    }
+
+    public void resetPlayer() {
+        playerPosition = maze.grid[0][0];
+        userSteps.clear();
+        userSteps.add(playerPosition);
+        solvingMode = false;
+        invalidate();
+    }
+
+    // Maze solved listener interface
+    public interface OnMazeSolvedListener {
+        void onMazeSolved();
+    }
+
+    private OnMazeSolvedListener mazeSolvedListener;
+
+    public void setOnMazeSolvedListener(OnMazeSolvedListener listener) {
+        this.mazeSolvedListener = listener;
     }
 }

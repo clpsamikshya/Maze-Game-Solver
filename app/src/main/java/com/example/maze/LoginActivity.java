@@ -1,9 +1,12 @@
 package com.example.maze;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.*;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 public class LoginActivity extends AppCompatActivity {
@@ -24,18 +27,24 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
 
-        // Auto-login if already logged in
         SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
-        prefs.edit().putBoolean("loggedIn", false).apply();
+
+        // ✅ Auto-login if already logged in
+        if (prefs.getBoolean("loggedIn", false)) {
+            goToMain();  // Skip login if already logged in
+            return;
+        }
 
         btnLogin.setOnClickListener(v -> {
-            String username = etUsername.getText().toString();
-            String password = etPassword.getText().toString();
+            String username = etUsername.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
 
             if (username.equals(USERNAME) && password.equals(PASSWORD)) {
+                // ✅ Save login status
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putBoolean("loggedIn", true);
                 editor.apply();
+
                 Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
                 goToMain();
             } else {
@@ -46,7 +55,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void goToMain() {
         Intent intent = new Intent(this, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // clear login from backstack
         startActivity(intent);
-        finish(); // Prevent going back to login
+        finish();
     }
 }

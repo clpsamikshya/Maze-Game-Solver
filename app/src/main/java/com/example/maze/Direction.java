@@ -12,4 +12,20 @@ public enum Direction {
             default: throw new IllegalStateException("Unexpected value: " + this);
         }
     }
+
+    public int rowOffset() {
+        switch (this) {
+            case TOP: return -1;
+            case BOTTOM: return 1;
+            default: return 0;
+        }
+    }
+
+    public int colOffset() {
+        switch (this) {
+            case LEFT: return -1;
+            case RIGHT: return 1;
+            default: return 0;
+        }
+    }
 }
