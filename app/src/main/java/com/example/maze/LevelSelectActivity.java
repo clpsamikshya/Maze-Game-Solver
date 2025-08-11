@@ -1,3 +1,4 @@
+
 package com.example.maze;
 
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
@@ -24,28 +26,38 @@ public class LevelSelectActivity extends AppCompatActivity {
     private Button btnResetProgress;
 
     private static final int TOTAL_LEVELS = 8; // Total available levels
+    private boolean progressReset = false;  // flag to track reset
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_level_select);
 
+        if (savedInstanceState != null) {
+            progressReset = savedInstanceState.getBoolean("progressReset", false);
+        }
+
         listView = findViewById(R.id.levelListView);
         btnResetProgress = findViewById(R.id.btnResetProgress);
         dbHelper = new DBHelper(this);
 
-        // 🔙 Back button setup
         ImageButton btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> {
-
-            setResult(RESULT_CANCELED);
+            if (progressReset) {
+                Intent resultIntent = new Intent();
+                resultIntent.putExtra("level_number", 1);
+                setResult(RESULT_OK, resultIntent);
+            } else {
+                setResult(RESULT_CANCELED);
+            }
             finish();
         });
 
         btnResetProgress.setOnClickListener(v -> {
             dbHelper.resetProgress();
             Toast.makeText(this, "Progress reset! Restarting screen...", Toast.LENGTH_SHORT).show();
-            recreate(); // Restart activity to refresh level list
+            progressReset = true;
+            recreate();
         });
 
         loadLevelList();
@@ -61,13 +73,27 @@ public class LevelSelectActivity extends AppCompatActivity {
                 Toast.makeText(LevelSelectActivity.this, "Level locked! Complete previous levels first.", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // Add this OnBackPressedCallback to handle system back and swipe back gesture
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (progressReset) {
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("level_number", 1);
+                    setResult(RESULT_OK, resultIntent);
+                } else {
+                    setResult(RESULT_CANCELED);
+                }
+                finish();
+            }
+        });
     }
 
     private void loadLevelList() {
         maxUnlockedLevel = dbHelper.getMaxUnlockedLevel();
 
         List<String> levels = new ArrayList<>();
-
         for (int i = 1; i <= TOTAL_LEVELS; i++) {
             levels.add("Level " + i);
         }
@@ -79,8 +105,7 @@ public class LevelSelectActivity extends AppCompatActivity {
                 TextView textView = view.findViewById(android.R.id.text1);
 
                 int levelNumber = position + 1;
-
-                textView.setTextColor(0xFFFFFFFF); // White text for all
+                textView.setTextColor(0xFF2C3E50);
 
                 if (levelNumber > maxUnlockedLevel) {
                     textView.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.lock, 0);
@@ -88,11 +113,16 @@ public class LevelSelectActivity extends AppCompatActivity {
                 } else {
                     textView.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0);
                 }
-
                 return view;
             }
         };
 
         listView.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("progressReset", progressReset);
     }
 }

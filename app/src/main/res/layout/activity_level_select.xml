@@ -15,23 +15,20 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="8dp"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="30dp"/>
+        android:layout_margin="16dp"/>
 
-    <!-- Title Text next to the icon -->
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Select Level"
         android:textSize="24sp"
-        android:textColor="#FFFFFF"
+        android:textColor="#2C3E50"
         android:textStyle="bold"
         android:layout_toEndOf="@id/btnBack"
         android:layout_alignTop="@id/btnBack"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="30dp"/>
+        android:layout_marginBottom="40dp"/>
 
     <Button
         android:id="@+id/btnResetProgress"

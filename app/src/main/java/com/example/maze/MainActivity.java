@@ -1,4 +1,3 @@
-
 package com.example.maze;
 
 import android.app.AlertDialog;
@@ -6,16 +5,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
+import java.util.HashSet;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private int mazeSize;
     private boolean isMazeSolved = false;
 
-    private static final int MAX_LEVEL = 8;
+    private static final int MAX_LEVEL = 8; // Increased to 8
     private static final int REQUEST_CODE_LEVEL_SELECT = 100;
 
     private static final String PREFS_NAME = "MazePrefs";
@@ -41,27 +37,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         rootLayout = findViewById(R.id.rootLayout);
-//        LinearLayout topBar = findViewById(R.id.topBar);
         tvCurrentLevel = findViewById(R.id.tvCurrentLevel);
+
         Button btnReset = findViewById(R.id.btnReset);
         Button btnSolve = findViewById(R.id.btnSolve);
         Button btnSave = findViewById(R.id.saveButton);
         Button btnLevelSelect = findViewById(R.id.btnLevelSelect);
         Button btnLogout = findViewById(R.id.btnLogout);
-        btnLogout.setEnabled(true);
-        btnLogout.setOnClickListener(v -> {
 
+        btnLogout.setOnClickListener(v -> {
             getSharedPreferences("LoginPrefs", MODE_PRIVATE)
                     .edit()
                     .clear()
                     .apply();
-
             Intent intent = new Intent(MainActivity.this, LoginActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
             finish();
         });
-
 
         btnLevelSelect.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, LevelSelectActivity.class);
@@ -74,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
             finish();
             return;
         }
-
 
         dbHelper = new DBHelper(this);
         int selectedLevel = getIntent().getIntExtra("level_number", -1);
@@ -96,11 +88,12 @@ public class MainActivity extends AppCompatActivity {
         tvCurrentLevel.setText("Level " + currentLevel);
         mazeSize = calculateMazeSize(currentLevel);
 
-        generateMaze();
+        generateMaze(); // mazeView created here
 
         btnReset.setOnClickListener(v -> {
             isMazeSolved = false;
             generateMaze();
+            mazeView.resetMaze();
         });
 
         btnSolve.setOnClickListener(v -> solveMazeAnimated());
@@ -110,15 +103,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Complete the level before saving.", Toast.LENGTH_SHORT).show();
                 return;
             }
-
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("Save Progress")
                     .setMessage("Do you want to save your progress?")
                     .setPositiveButton("Yes", (dialog, which) -> {
                         dbHelper.completeLevel(currentLevel);
                         Toast.makeText(MainActivity.this, "Progress Saved!", Toast.LENGTH_SHORT).show();
-
-                        // Instead of opening LevelSelectActivity, just load next level directly
                         loadNextLevel();
                     })
                     .setNegativeButton("No", null)
@@ -143,6 +133,12 @@ public class MainActivity extends AppCompatActivity {
             onLevelCompleted();
         });
 
+        // ✅ Now it's safe to set the move listener
+        mazeView.setOnMoveListener(count -> {
+            TextView moveCounter = findViewById(R.id.tvMoves);
+            moveCounter.setText("Moves: " + count);
+        });
+
         RelativeLayout.LayoutParams mazeParams = new RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.MATCH_PARENT,
                 RelativeLayout.LayoutParams.MATCH_PARENT
@@ -151,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
 
         rootLayout.addView(mazeView, mazeParams);
 
-        // Bring buttons to front so they remain clickable
         Button btnSave = findViewById(R.id.saveButton);
         Button btnReset = findViewById(R.id.btnReset);
         Button btnSolve = findViewById(R.id.btnSolve);
@@ -165,42 +160,40 @@ public class MainActivity extends AppCompatActivity {
 
     private void solveMazeAnimated() {
         Solver solver = new Solver(maze);
-        List<Cell> animatedPath;
-
-        if (currentLevel <= 3) {
-            animatedPath = solver.solveWithDijkstra(
-                    maze.grid[0][0],
-                    maze.grid[mazeSize - 1][mazeSize - 1]
-            );
-        } else {
-            animatedPath = solver.solveWithAStar(
-                    maze.grid[0][0],
-                    maze.grid[mazeSize - 1][mazeSize - 1]
-            );
-        }
+        List<Solver.Step> steps = solver.solveWithAStarAnimated(
+                maze.grid[0][0],
+                maze.grid[mazeSize - 1][mazeSize - 1]
+        );
 
         final Handler handler = new Handler();
-        final int delay = 50;
+        final int delay = 100;
 
-        mazeView.setPath(null);
-        mazeView.clearAnimatedSteps();
+        mazeView.resetAnimatedSteps();
         mazeView.setSolvingMode(true);
-        mazeView.invalidate();
+        mazeView.setOpenSet(new HashSet<>());
+        mazeView.setClosedSet(new HashSet<>());
 
-        for (int i = 0; i < animatedPath.size(); i++) {
-            final Cell step = animatedPath.get(i);
+        for (int i = 0; i < steps.size(); i++) {
+            final int index = i;
             handler.postDelayed(() -> {
-                mazeView.addAnimatedStep(step);
-                if (step == animatedPath.get(animatedPath.size() - 1)) {
+                Solver.Step step = steps.get(index);
+                mazeView.setOpenSet(step.openSet);
+                mazeView.setClosedSet(step.closedSet);
+                mazeView.setPlayerPosition(step.current);
+                if (step.finalPath != null) {
+                    mazeView.resetAnimatedSteps();
+                    for (Cell cell : step.finalPath) {
+                        mazeView.addAnimatedStep(cell);
+                    }
                     isMazeSolved = true;
-                    Toast.makeText(MainActivity.this, "Level " + currentLevel + " Completed!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Shortest path found!", Toast.LENGTH_SHORT).show();
                 }
             }, i * delay);
         }
     }
 
     private void onLevelCompleted() {
-        Toast.makeText(MainActivity.this, "Level " + currentLevel + " Completed!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Level " + currentLevel + " Completed!", Toast.LENGTH_SHORT).show();
     }
 
     private void loadNextLevel() {
@@ -210,9 +203,14 @@ public class MainActivity extends AppCompatActivity {
             mazeSize = calculateMazeSize(currentLevel);
             isMazeSolved = false;
             tvCurrentLevel.setText("Level " + currentLevel);
+
+            // Reset moves counter to 0
+            TextView moveCounter = findViewById(R.id.tvMoves);
+            moveCounter.setText("Moves: 0");
+
             new Handler().postDelayed(this::generateMaze, 300);
         } else {
-            Toast.makeText(MainActivity.this, "Congrats! You finished the hardest level!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Congrats! You finished the hardest level!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -229,11 +227,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("currentLevel", currentLevel);
@@ -246,21 +239,6 @@ public class MainActivity extends AppCompatActivity {
         tvCurrentLevel.setText("Level " + currentLevel);
     }
 
-//    private void logout() {
-//        // Clear login data (adjust the prefs name if needed)
-//        getSharedPreferences("LoginPrefs", MODE_PRIVATE)
-//                .edit()
-//                .clear()
-//                .apply();
-//
-//        // Redirect to LoginActivity
-//        Intent intent = new Intent(this, LoginActivity.class);
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//        startActivity(intent);
-//        finish();
-//    }
-
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -268,13 +246,16 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_CODE_LEVEL_SELECT && resultCode == RESULT_OK && data != null) {
             int selectedLevel = data.getIntExtra("level_number", currentLevel);
             int unlockedLevel = dbHelper.getMaxUnlockedLevel();
-
-            // Validate level selection
             if (selectedLevel >= 1 && selectedLevel <= unlockedLevel + 1 && selectedLevel <= MAX_LEVEL) {
                 currentLevel = selectedLevel;
                 saveLastPlayedLevel(currentLevel);
                 mazeSize = calculateMazeSize(currentLevel);
                 tvCurrentLevel.setText("Level " + currentLevel);
+
+                // Reset moves counter to 0
+                TextView moveCounter = findViewById(R.id.tvMoves);
+                moveCounter.setText("Moves: 0");
+
                 generateMaze();
             } else {
                 Toast.makeText(this, "Level is locked or invalid!", Toast.LENGTH_SHORT).show();

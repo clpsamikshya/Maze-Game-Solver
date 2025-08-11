@@ -10,17 +10,27 @@ import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class MazeView extends View {
     private Maze maze;
     private List<Cell> path;
     private List<Cell> animatedSteps = new ArrayList<>();
     private List<Cell> userSteps = new ArrayList<>();
+
+    // New sets for visualizing algorithm states
+    private Set<Cell> openSet = new HashSet<>();
+    private Set<Cell> closedSet = new HashSet<>();
+
     private Paint wallPaint, pathPaint, borderPaint, playerPaint, userPathPaint, solvingPathPaint;
+    private Paint openSetPaint, closedSetPaint;
     private Cell playerPosition;
     private int cellSize;
     private boolean solvingMode = false;
+    private int moveCount = 0;
+
 
     public MazeView(Context context, Maze maze, List<Cell> path) {
         super(context);
@@ -43,7 +53,7 @@ public class MazeView extends View {
         pathPaint.setAntiAlias(true);
 
         solvingPathPaint = new Paint();
-        solvingPathPaint.setColor(Color.parseColor("#8B5A2B"));// or #AF6E4D or #8B5A2B or #FFDDA0 or #AD6F69
+        solvingPathPaint.setColor(Color.parseColor("#8B5A2B"));//fallback
         solvingPathPaint.setStyle(Paint.Style.FILL);
         solvingPathPaint.setAntiAlias(true);
 
@@ -53,8 +63,20 @@ public class MazeView extends View {
         userPathPaint.setAntiAlias(true);
 
         playerPaint = new Paint();
-        playerPaint.setColor(Color.parseColor("#7D8F69")); // player icon  #A39887 or #D4A037
+        playerPaint.setColor(Color.parseColor("#7D8F69")); // player icon
         playerPaint.setAntiAlias(true);
+
+        openSetPaint = new Paint();
+        openSetPaint.setColor(Color.parseColor("#5C2F00"));// A0522D or 8B4513
+        openSetPaint.setStyle(Paint.Style.FILL);
+        openSetPaint.setAntiAlias(true);
+
+// Paint for closed set - cells already evaluated
+        closedSetPaint = new Paint();
+        closedSetPaint.setColor(Color.parseColor("#5C2F00"));  // Sienna, warm reddish brown
+        closedSetPaint.setStyle(Paint.Style.FILL);
+        closedSetPaint.setAntiAlias(true);
+
 
         playerPosition = maze.grid[0][0];
         userSteps.add(playerPosition);
@@ -89,7 +111,30 @@ public class MazeView extends View {
                     canvas.drawLine(x, y + cellSize, x, y, wallPaint);
             }
         }
-        // Draw user's path
+
+        // Draw closed set (cells already evaluated) in RED
+        if (closedSet != null) {
+            for (Cell cell : closedSet) {
+                int x = offsetX + cell.col * cellSize;
+                int y = offsetY + cell.row * cellSize;
+                canvas.drawRoundRect(
+                        new RectF(x + 12, y + 12, x + cellSize - 12, y + cellSize - 12),
+                        15f, 15f, closedSetPaint);
+            }
+        }
+
+        // Draw open set (frontier cells) in YELLOW
+        if (openSet != null) {
+            for (Cell cell : openSet) {
+                int x = offsetX + cell.col * cellSize;
+                int y = offsetY + cell.row * cellSize;
+                canvas.drawRoundRect(
+                        new RectF(x + 12, y + 12, x + cellSize - 12, y + cellSize - 12),
+                        15f, 15f, openSetPaint);
+            }
+        }
+
+        // Draw user's path (deep blue)
         for (Cell cell : userSteps) {
             int x = offsetX + cell.col * cellSize;
             int y = offsetY + cell.row * cellSize;
@@ -98,8 +143,7 @@ public class MazeView extends View {
                     12f, 12f, userPathPaint);
         }
 
-
-        // Draw system path
+        // Draw system path (orange brown)
         if (animatedSteps != null) {
             for (Cell cell : animatedSteps) {
                 int x = offsetX + cell.col * cellSize;
@@ -110,12 +154,13 @@ public class MazeView extends View {
             }
         }
 
-        // Draw player
+        // Draw player position (circle)
         if (playerPosition != null) {
             float px = offsetX + playerPosition.col * cellSize + cellSize / 2f;
             float py = offsetY + playerPosition.row * cellSize + cellSize / 2f;
             canvas.drawCircle(px, py, cellSize / 4f, playerPaint);
         }
+
     }
 
     public void setPath(List<Cell> path) {
@@ -139,6 +184,18 @@ public class MazeView extends View {
 
     public void setSolvingMode(boolean mode) {
         this.solvingMode = mode;
+        invalidate();
+    }
+
+    // Setter for open set (frontier)
+    public void setOpenSet(Set<Cell> openSet) {
+        this.openSet = openSet;
+        invalidate();
+    }
+
+    // Setter for closed set (already evaluated)
+    public void setClosedSet(Set<Cell> closedSet) {
+        this.closedSet = closedSet;
         invalidate();
     }
 
@@ -168,7 +225,6 @@ public class MazeView extends View {
         }
         return super.onTouchEvent(event);
     }
-
     private void movePlayer(String direction) {
         int row = playerPosition.row;
         int col = playerPosition.col;
@@ -194,7 +250,13 @@ public class MazeView extends View {
         }
 
         if (next != null) {
-            // Backtracking logic
+            // Count the move
+            moveCount++;
+            if (moveListener != null) {
+                moveListener.onMoveCountChanged(moveCount);
+            }
+
+            // Backtracking logic for user path
             if (userSteps.size() >= 2 && next == userSteps.get(userSteps.size() - 2)) {
                 userSteps.remove(userSteps.size() - 1);
             } else {
@@ -206,6 +268,38 @@ public class MazeView extends View {
             invalidate();
             checkIfMazeSolved();
         }
+//    }
+//        if (next != null) {
+//            // Backtracking logic
+//            if (userSteps.size() >= 2 && next == userSteps.get(userSteps.size() - 2)) {
+//                userSteps.remove(userSteps.size() - 1);
+//            } else {
+//                userSteps.add(next);
+//            }
+//
+//            playerPosition = next;
+//            solvingMode = false;
+//            invalidate();
+//            checkIfMazeSolved();
+//        }
+    }
+
+    public void resetMaze() {
+        moveCount = 0;
+        if (moveListener != null) {
+            moveListener.onMoveCountChanged(moveCount);
+        }
+
+    }
+
+    public interface OnMoveListener {
+        void onMoveCountChanged(int moveCount);
+    }
+
+    private OnMoveListener moveListener;
+
+    public void setOnMoveListener(OnMoveListener listener) {
+        this.moveListener = listener;
     }
 
     private void checkIfMazeSolved() {
@@ -236,7 +330,18 @@ public class MazeView extends View {
         userSteps.add(playerPosition);
         solvingMode = false;
         invalidate();
+
+        moveCount = 0;
+        if (moveListener != null) {
+            moveListener.onMoveCountChanged(moveCount);
+        }
+
     }
+    public void setPlayerPosition(Cell cell) {
+        this.playerPosition = cell;
+        invalidate();
+    }
+
 
     // Maze solved listener interface
     public interface OnMazeSolvedListener {
@@ -249,3 +354,9 @@ public class MazeView extends View {
         this.mazeSolvedListener = listener;
     }
 }
+
+
+
+
+
+
