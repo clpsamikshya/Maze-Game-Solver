@@ -1,3 +1,4 @@
+
 package com.example.maze;
 
 import android.content.Context;
@@ -31,6 +32,11 @@ public class MazeView extends View {
     private boolean solvingMode = false;
     private int moveCount = 0;
 
+    // Flag for algorithm type
+    private boolean isGreedy = false;
+
+    // Flag to control movement
+    private boolean isMovable = true;
 
     public MazeView(Context context, Maze maze, List<Cell> path) {
         super(context);
@@ -53,7 +59,7 @@ public class MazeView extends View {
         pathPaint.setAntiAlias(true);
 
         solvingPathPaint = new Paint();
-        solvingPathPaint.setColor(Color.parseColor("#8B5A2B"));//fallback
+        solvingPathPaint.setColor(Color.parseColor("#8B5A2B")); // fallback
         solvingPathPaint.setStyle(Paint.Style.FILL);
         solvingPathPaint.setAntiAlias(true);
 
@@ -67,16 +73,14 @@ public class MazeView extends View {
         playerPaint.setAntiAlias(true);
 
         openSetPaint = new Paint();
-        openSetPaint.setColor(Color.parseColor("#5C2F00"));// A0522D or 8B4513
+        openSetPaint.setColor(Color.parseColor("#5C2F00")); // default A* open
         openSetPaint.setStyle(Paint.Style.FILL);
         openSetPaint.setAntiAlias(true);
 
-// Paint for closed set - cells already evaluated
         closedSetPaint = new Paint();
-        closedSetPaint.setColor(Color.parseColor("#5C2F00"));  // Sienna, warm reddish brown
+        closedSetPaint.setColor(Color.parseColor("#5C2F00"));  // default A* closed
         closedSetPaint.setStyle(Paint.Style.FILL);
         closedSetPaint.setAntiAlias(true);
-
 
         playerPosition = maze.grid[0][0];
         userSteps.add(playerPosition);
@@ -112,7 +116,7 @@ public class MazeView extends View {
             }
         }
 
-        // Draw closed set (cells already evaluated) in RED
+        // Draw closed set
         if (closedSet != null) {
             for (Cell cell : closedSet) {
                 int x = offsetX + cell.col * cellSize;
@@ -123,7 +127,7 @@ public class MazeView extends View {
             }
         }
 
-        // Draw open set (frontier cells) in YELLOW
+        // Draw open set
         if (openSet != null) {
             for (Cell cell : openSet) {
                 int x = offsetX + cell.col * cellSize;
@@ -143,7 +147,7 @@ public class MazeView extends View {
                     12f, 12f, userPathPaint);
         }
 
-        // Draw system path (orange brown)
+        // Draw system path
         if (animatedSteps != null) {
             for (Cell cell : animatedSteps) {
                 int x = offsetX + cell.col * cellSize;
@@ -160,7 +164,25 @@ public class MazeView extends View {
             float py = offsetY + playerPosition.row * cellSize + cellSize / 2f;
             canvas.drawCircle(px, py, cellSize / 4f, playerPaint);
         }
+    }
 
+    // Setter to change algorithm colors
+    public void setAlgorithm(boolean greedy) {
+        isGreedy = greedy;
+        updateAlgorithmColors();
+    }
+
+    private void updateAlgorithmColors() {
+        if (isGreedy) {
+            openSetPaint.setColor(Color.parseColor("#907997"));
+            closedSetPaint.setColor(Color.parseColor("#907997"));
+            solvingPathPaint.setColor(Color.parseColor("#000040"));
+        } else {
+            openSetPaint.setColor(Color.parseColor("#5C2F00"));
+            closedSetPaint.setColor(Color.parseColor("#5C2F00"));
+            solvingPathPaint.setColor(Color.parseColor("#8B5A2B"));
+        }
+        invalidate();
     }
 
     public void setPath(List<Cell> path) {
@@ -187,13 +209,11 @@ public class MazeView extends View {
         invalidate();
     }
 
-    // Setter for open set (frontier)
     public void setOpenSet(Set<Cell> openSet) {
         this.openSet = openSet;
         invalidate();
     }
 
-    // Setter for closed set (already evaluated)
     public void setClosedSet(Set<Cell> closedSet) {
         this.closedSet = closedSet;
         invalidate();
@@ -203,6 +223,8 @@ public class MazeView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (!isMovable) return false; // ✅ prevent movement when maze solved
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 downX = event.getX();
@@ -225,7 +247,10 @@ public class MazeView extends View {
         }
         return super.onTouchEvent(event);
     }
+
     private void movePlayer(String direction) {
+        if (!isMovable) return; // ✅ extra safety
+
         int row = playerPosition.row;
         int col = playerPosition.col;
         Cell next = null;
@@ -250,13 +275,9 @@ public class MazeView extends View {
         }
 
         if (next != null) {
-            // Count the move
             moveCount++;
-            if (moveListener != null) {
-                moveListener.onMoveCountChanged(moveCount);
-            }
+            if (moveListener != null) moveListener.onMoveCountChanged(moveCount);
 
-            // Backtracking logic for user path
             if (userSteps.size() >= 2 && next == userSteps.get(userSteps.size() - 2)) {
                 userSteps.remove(userSteps.size() - 1);
             } else {
@@ -268,52 +289,34 @@ public class MazeView extends View {
             invalidate();
             checkIfMazeSolved();
         }
-//    }
-//        if (next != null) {
-//            // Backtracking logic
-//            if (userSteps.size() >= 2 && next == userSteps.get(userSteps.size() - 2)) {
-//                userSteps.remove(userSteps.size() - 1);
-//            } else {
-//                userSteps.add(next);
-//            }
-//
-//            playerPosition = next;
-//            solvingMode = false;
-//            invalidate();
-//            checkIfMazeSolved();
-//        }
     }
 
     public void resetMaze() {
         moveCount = 0;
-        if (moveListener != null) {
-            moveListener.onMoveCountChanged(moveCount);
-        }
-
+        if (moveListener != null) moveListener.onMoveCountChanged(moveCount);
     }
 
-    public interface OnMoveListener {
-        void onMoveCountChanged(int moveCount);
-    }
+    public void resetPlayer() {
+        playerPosition = maze.grid[0][0];
+        userSteps.clear();
+        userSteps.add(playerPosition);
+        solvingMode = false;
+        isMovable = true; // ✅ re-enable movement
+        invalidate();
 
-    private OnMoveListener moveListener;
-
-    public void setOnMoveListener(OnMoveListener listener) {
-        this.moveListener = listener;
+        moveCount = 0;
+        if (moveListener != null) moveListener.onMoveCountChanged(moveCount);
     }
 
     private void checkIfMazeSolved() {
         if (playerPosition == maze.grid[maze.rows - 1][maze.cols - 1]) {
             Toast.makeText(getContext(), "Maze Solved!", Toast.LENGTH_SHORT).show();
-            if (mazeSolvedListener != null) {
-                mazeSolvedListener.onMazeSolved();
-            }
+            isMovable = false; // ✅ disable further movement
+            if (mazeSolvedListener != null) mazeSolvedListener.onMazeSolved();
 
-            // Compare path lengths
             if (path != null && !path.isEmpty()) {
                 int systemSteps = path.size();
                 int userStepsCount = userSteps.size();
-
                 if (userStepsCount == systemSteps) {
                     Toast.makeText(getContext(), "You found the shortest path!", Toast.LENGTH_LONG).show();
                 } else {
@@ -324,39 +327,27 @@ public class MazeView extends View {
         }
     }
 
-    public void resetPlayer() {
-        playerPosition = maze.grid[0][0];
-        userSteps.clear();
-        userSteps.add(playerPosition);
-        solvingMode = false;
-        invalidate();
-
-        moveCount = 0;
-        if (moveListener != null) {
-            moveListener.onMoveCountChanged(moveCount);
-        }
-
-    }
     public void setPlayerPosition(Cell cell) {
         this.playerPosition = cell;
         invalidate();
     }
 
+    public void setMovable(boolean movable) {
+        this.isMovable = movable;
+    }
 
-    // Maze solved listener interface
+    public interface OnMoveListener {
+        void onMoveCountChanged(int moveCount);
+    }
+
+    private OnMoveListener moveListener;
+    public void setOnMoveListener(OnMoveListener listener) { this.moveListener = listener; }
+
     public interface OnMazeSolvedListener {
         void onMazeSolved();
     }
 
     private OnMazeSolvedListener mazeSolvedListener;
-
-    public void setOnMazeSolvedListener(OnMazeSolvedListener listener) {
-        this.mazeSolvedListener = listener;
-    }
+    public void setOnMazeSolvedListener(OnMazeSolvedListener listener) { this.mazeSolvedListener = listener; }
 }
-
-
-
-
-
 

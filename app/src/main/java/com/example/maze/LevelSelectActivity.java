@@ -2,6 +2,7 @@
 package com.example.maze;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,6 +54,7 @@ public class LevelSelectActivity extends AppCompatActivity {
             finish();
         });
 
+
         btnResetProgress.setOnClickListener(v -> {
             dbHelper.resetProgress();
             Toast.makeText(this, "Progress reset! Restarting screen...", Toast.LENGTH_SHORT).show();
@@ -91,7 +93,11 @@ public class LevelSelectActivity extends AppCompatActivity {
     }
 
     private void loadLevelList() {
-        maxUnlockedLevel = dbHelper.getMaxUnlockedLevel();
+        SharedPreferences prefs = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+        int userId = prefs.getInt("loggedInUserId", -1);
+
+        maxUnlockedLevel = dbHelper.getMaxUnlockedLevel(userId);
+
 
         List<String> levels = new ArrayList<>();
         for (int i = 1; i <= TOTAL_LEVELS; i++) {

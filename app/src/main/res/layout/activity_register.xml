@@ -8,9 +8,26 @@
     android:layout_height="match_parent"
     android:background="@drawable/blue_gradient">
 
+    <Button
+        android:id="@+id/btnViewUsers"
+        android:text="View Registered Users"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:paddingVertical="12dp"
+        android:paddingHorizontal="16dp"
+        android:textSize="16sp"
+        android:backgroundTint="#2C3E50"
+        android:textColor="#FFFFFF"
+        android:textAllCaps="false"
+        android:layout_gravity="start"
+        android:layout_marginBottom="24dp" />
+
+
+    <!-- Page Title -->
     <TextView
         android:id="@+id/tvTitle"
-        android:text="Maze Game Login"
+        android:text="Register"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="#2C3E50"
@@ -18,9 +35,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <!-- Full Name Field -->
     <EditText
-        android:id="@+id/etUsername"
-        android:hint="Username"
+        android:id="@+id/etName"
+        android:hint="Full Name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="48dp"
@@ -29,72 +47,68 @@
         android:background="@drawable/edittext_rounded"
         android:textColor="#000000"
         android:textColorHint="#000000"
-        />
+        android:inputType="textPersonName"
+        android:layout_marginBottom="12dp" />
 
+    <!-- Email Field -->
     <EditText
-        android:id="@+id/etPassword"
-        android:hint="Password"
-        android:inputType="textPassword"
+        android:id="@+id/etEmail"
+        android:hint="Email Address"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
         android:minHeight="48dp"
         android:paddingVertical="12dp"
         android:textSize="16sp"
         android:background="@drawable/edittext_rounded"
         android:textColor="#000000"
-        android:textColorHint="#000000"/>
+        android:textColorHint="#000000"
+        android:inputType="textEmailAddress"
+        android:layout_marginBottom="12dp" />
 
-    <Button
-        android:id="@+id/btnLogin"
-        android:text="Login"
+    <!-- Password Field -->
+    <EditText
+        android:id="@+id/etPassword"
+        android:hint="Password"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:minHeight="48dp"
+        android:paddingVertical="12dp"
+        android:textSize="16sp"
+        android:background="@drawable/edittext_rounded"
+        android:textColor="#000000"
+        android:textColorHint="#000000"
+        android:inputType="textPassword"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Register Button -->
+    <Button
+        android:id="@+id/btnRegister"
+        android:text="Register"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:minHeight="48dp"
         android:paddingVertical="12dp"
         android:textSize="16sp"
         android:backgroundTint="#2C3E50"
         android:textColor="#FFFFFF"
-        android:textAllCaps="false"/>
+        android:textAllCaps="false"
+        android:layout_marginBottom="20dp"/>
 
+    <!-- Divider -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="OR"
         android:textColor="#2C3E50"
         android:textSize="14sp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginTop="12dp"/>
-
-    <com.google.android.gms.common.SignInButton
-        android:id="@+id/btnGoogleSignIn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="If you don't have account Sign up!"
-        android:textColor="#2C3E50"
-        android:textSize="14sp"
         android:layout_marginBottom="20dp" />
 
-
-    <Button
-        android:id="@+id/btnSignUp"
-        android:text="Sign Up"
+    <!-- Google Sign-In Button -->
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/btnGoogleSignIn"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:minHeight="48dp"
-        android:paddingVertical="12dp"
-        android:textSize="16sp"
-        android:backgroundTint="#2C3E50"
-        android:textColor="#FFFFFF"
-        android:textAllCaps="false"/>
+        android:layout_marginBottom="10dp" />
 
 </LinearLayout>
-
-

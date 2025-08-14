@@ -38,9 +38,9 @@
         android:backgroundTint="#2C3E50"
         android:textColor="#FFFFFF"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentStart="true"
         android:layout_marginTop="16dp" />
-
+    
     <ListView
         android:id="@+id/levelListView"
         android:layout_width="match_parent"
