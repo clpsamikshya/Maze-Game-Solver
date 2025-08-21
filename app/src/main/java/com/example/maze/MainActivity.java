@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Fetch and display the user's full name
         String fullName = dbHelper.getUserFullName(userId);
-        tvGreeting.setText("Hi, " + fullName);
+        tvGreeting.setText("Hi! " + fullName);
 
         int selectedLevel = getIntent().getIntExtra("level_number", -1);
         int unlockedLevel = dbHelper.getMaxUnlockedLevel(userId);
@@ -128,28 +129,36 @@ public class MainActivity extends AppCompatActivity {
             startActivityForResult(intent, REQUEST_CODE_LEVEL_SELECT);
         });
 
+        // LOGOUT BUTTON UPDATED WITH CONFIRMATION DIALOG
         btnLogout.setOnClickListener(v -> {
-            // Clear SharedPreferences
-            getSharedPreferences("LoginPrefs", MODE_PRIVATE)
-                    .edit()
-                    .clear()
-                    .apply();
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("Logout")
+                    .setMessage("Are you sure you want to log out?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        // Clear SharedPreferences
+                        getSharedPreferences("LoginPrefs", MODE_PRIVATE)
+                                .edit()
+                                .clear()
+                                .apply();
 
-            // Google Sign-Out
-            GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .build();
-            GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(MainActivity.this, gso);
+                        // Google Sign-Out
+                        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestEmail()
+                                .build();
+                        GoogleSignInClient mGoogleSignInClient = GoogleSignIn.getClient(MainActivity.this, gso);
 
-            mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
-                mGoogleSignInClient.revokeAccess().addOnCompleteListener(task2 -> {
-                    // Redirect to LoginActivity
-                    Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                });
-            });
+                        mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
+                            mGoogleSignInClient.revokeAccess().addOnCompleteListener(task2 -> {
+                                // Redirect to LoginActivity
+                                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            });
+                        });
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
         });
 
     }

@@ -143,3 +143,171 @@
         android:textColor="#FFFFFF"/>
 
 </RelativeLayout>
+
+<!--<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:card_view="http://schemas.android.com/apk/res-auto"-->
+<!--    android:id="@+id/rootLayout"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    android:background="@drawable/background">-->
+
+
+<!--&lt;!&ndash; Title &ndash;&gt;-->
+<!--    <TextView-->
+<!--        android:id="@+id/tvMazeSolver"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:text="Maze Solver"-->
+<!--        android:textSize="20sp"-->
+<!--        android:textColor="#2C3E50"-->
+<!--        android:textStyle="bold" />-->
+
+<!--    &lt;!&ndash; Logout Button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnLogout"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_alignBaseline="@id/tvMazeSolver"-->
+<!--        android:layout_margin="16dp"-->
+<!--        android:elevation="6dp"-->
+<!--        android:text="Logout"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:backgroundTint="#2C3E50" />-->
+
+<!--    &lt;!&ndash; Level and Moves Info &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_below="@id/tvMazeSolver"-->
+<!--        android:layout_marginTop="60dp"-->
+<!--        android:elevation="6dp"-->
+<!--        android:gravity="center"-->
+<!--        android:layout_centerHorizontal="true">-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tvCurrentLevel"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Level 1"-->
+<!--            android:textSize="20sp"-->
+<!--            android:textStyle="bold"-->
+<!--            android:gravity="center"-->
+<!--            android:padding="12dp"-->
+<!--            android:background="#2C3E50"-->
+<!--            android:textColor="#FFFFFF"-->
+<!--            android:layout_marginEnd="16dp" />-->
+
+<!--        <TextView-->
+<!--            android:id="@+id/tvMoves"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Moves: 0"-->
+<!--            android:textSize="20sp"-->
+<!--            android:textStyle="bold"-->
+<!--            android:gravity="center"-->
+<!--            android:padding="12dp"-->
+<!--            android:background="#2C3E50"-->
+<!--            android:textColor="#FFFFFF" />-->
+<!--    </LinearLayout>-->
+<!--    <TextView-->
+<!--        android:id="@+id/tvGreeting"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Hi, User"-->
+<!--        android:layout_marginTop="50dp"-->
+<!--        android:textColor="#2C3E50"-->
+<!--        android:textSize="20sp"-->
+<!--        android:padding="16dp"/>-->
+
+<!--    &lt;!&ndash; Reset Button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnReset"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Reset Maze"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_alignParentStart="true"-->
+<!--        android:layout_marginStart="16dp"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:elevation="6dp"-->
+<!--        android:backgroundTint="#2C3E50"-->
+<!--        android:textColor="#FFFFFF" />-->
+
+<!--    &lt;!&ndash; Solve Button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnSolve"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Solve"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_alignParentEnd="true"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:elevation="6dp"-->
+<!--        android:backgroundTint="#2C3E50"-->
+<!--        android:textColor="#FFFFFF" />-->
+
+<!--    &lt;!&ndash; Level Select Button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnLevelSelect"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Select Level"-->
+<!--        android:layout_alignParentBottom="true"-->
+<!--        android:layout_toEndOf="@id/btnReset"-->
+<!--        android:layout_toStartOf="@id/btnSolve"-->
+<!--        android:layout_marginStart="16dp"-->
+<!--        android:layout_marginEnd="16dp"-->
+<!--        android:elevation="6dp"-->
+<!--        android:layout_marginBottom="16dp"-->
+<!--        android:backgroundTint="#2C3E50"-->
+<!--        android:textColor="#FFFFFF"/>-->
+
+
+<!--    &lt;!&ndash; Container for spinner and save button &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/llSpinnerSave"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_above="@id/btnLevelSelect"-->
+<!--        android:gravity="center_vertical"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_marginBottom="16dp">-->
+
+<!--        <androidx.cardview.widget.CardView-->
+<!--            android:layout_width="100dp"-->
+<!--            android:layout_height="35dp"-->
+<!--            android:layout_marginEnd="50dp"-->
+<!--            card_view:cardElevation="4dp"-->
+<!--            card_view:cardBackgroundColor="#2C3E50"-->
+<!--            android:padding="4dp">-->
+
+<!--            <Spinner-->
+<!--                android:id="@+id/spinnerAlgorithm"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="match_parent"-->
+<!--                android:spinnerMode="dropdown"-->
+<!--                android:textAlignment="center"-->
+<!--                android:popupBackground="#2C3E50"-->
+<!--                android:backgroundTint="#2C3E50"-->
+<!--                android:textColor="#FFFFFF" />-->
+
+<!--        </androidx.cardview.widget.CardView>-->
+
+<!--        <Button-->
+<!--            android:id="@+id/saveButton"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="Save"-->
+<!--            android:elevation="6dp"-->
+<!--            android:backgroundTint="#2C3E50"-->
+<!--            android:textColor="#FFFFFF" />-->
+
+<!--    </LinearLayout>-->
+<!--</RelativeLayout>-->

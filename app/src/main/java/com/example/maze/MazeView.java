@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.media.MediaPlayer;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -69,7 +70,7 @@ public class MazeView extends View {
         userPathPaint.setAntiAlias(true);
 
         playerPaint = new Paint();
-        playerPaint.setColor(Color.parseColor("#7D8F69")); // player icon
+        playerPaint.setColor(Color.parseColor("#A9A9A9")); // player icon
         playerPaint.setAntiAlias(true);
 
         openSetPaint = new Paint();
@@ -174,13 +175,13 @@ public class MazeView extends View {
 
     private void updateAlgorithmColors() {
         if (isGreedy) {
-            openSetPaint.setColor(Color.parseColor("#907997"));
-            closedSetPaint.setColor(Color.parseColor("#907997"));
-            solvingPathPaint.setColor(Color.parseColor("#000040"));
+            openSetPaint.setColor(Color.parseColor("#3B0A2A"));
+            closedSetPaint.setColor(Color.parseColor("#3B0A2A"));
+            solvingPathPaint.setColor(Color.parseColor("#6B2D4D"));
         } else {
-            openSetPaint.setColor(Color.parseColor("#5C2F00"));
-            closedSetPaint.setColor(Color.parseColor("#5C2F00"));
-            solvingPathPaint.setColor(Color.parseColor("#8B5A2B"));
+            openSetPaint.setColor(Color.parseColor("#4D2000"));
+            closedSetPaint.setColor(Color.parseColor("#4D2000"));
+            solvingPathPaint.setColor(Color.parseColor("#7C4B1C"));
         }
         invalidate();
     }
@@ -254,6 +255,14 @@ public class MazeView extends View {
         int row = playerPosition.row;
         int col = playerPosition.col;
         Cell next = null;
+
+        // 🔊 Play move sound
+        MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.move);
+        mp.setVolume(0.3f, 0.3f);
+        mp.start();
+        mp.setOnCompletionListener(MediaPlayer::release);
+
+        invalidate(); // redraw after move
 
         switch (direction) {
             case "UP":

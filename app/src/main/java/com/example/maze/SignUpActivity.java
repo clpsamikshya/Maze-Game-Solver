@@ -23,7 +23,7 @@ import com.google.android.gms.tasks.Task;
 public class SignUpActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etPassword;
-    private Button btnRegister, btnViewUsers;
+    private Button btnRegister, btnViewUsers, btnLogin;
     private SignInButton btnGoogleSignIn;
     private DBHelper dbHelper;
     private static final int RC_SIGN_IN = 100;
@@ -40,6 +40,7 @@ public class SignUpActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
         btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
         btnViewUsers = findViewById(R.id.btnViewUsers);
+        btnLogin = findViewById(R.id.btnLogin);
 
         dbHelper = new DBHelper(this);
 
@@ -68,8 +69,14 @@ public class SignUpActivity extends AppCompatActivity {
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
         btnGoogleSignIn.setOnClickListener(v -> signInWithGoogle());
 
-        // View Users dialog
+        // View Users button with password protection
         btnViewUsers.setOnClickListener(v -> viewUsersDialog());
+
+        // Login button
+        btnLogin.setOnClickListener(v -> {
+            startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+            finish();
+        });
     }
 
     private void signInWithGoogle() {
@@ -109,49 +116,72 @@ public class SignUpActivity extends AppCompatActivity {
         }
     }
 
-    // Fixed View Users dialog with Update/Delete
+    // =========================
+    // PASSWORD-PROTECTED VIEW USERS
+    // =========================
     private void viewUsersDialog() {
-        Cursor cursor = dbHelper.getAllUsers();
-        if (cursor.getCount() == 0) {
-            Toast.makeText(this, "No registered users found", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // Step 1: Ask for password
+        AlertDialog.Builder passwordDialog = new AlertDialog.Builder(this);
+        passwordDialog.setTitle("Enter Password");
 
-        String[] usersArray = new String[cursor.getCount()];
-        int i = 0;
-        while (cursor.moveToNext()) {
-            String name = cursor.getString(0);
-            String email = cursor.getString(1);
-            usersArray[i] = name + " (" + email + ")";
-            i++;
-        }
-        cursor.close();
+        View view = getLayoutInflater().inflate(R.layout.dialog_password, null);
+        EditText etPasswordInput = view.findViewById(R.id.etPasswordInput);
+        passwordDialog.setView(view);
 
-        new AlertDialog.Builder(this)
-                .setTitle("Registered Users")
-                .setItems(usersArray, (dialog, which) -> {
-                    Cursor c = dbHelper.getAllUsers();
-                    c.moveToPosition(which);
-                    String selectedName = c.getString(0);
-                    String selectedEmail = c.getString(1);
-                    c.close();
+        passwordDialog.setPositiveButton("OK", (dialog, which) -> {
+            String enteredPassword = etPasswordInput.getText().toString().trim();
+            String hardcodedPassword = "admin123"; // 🔒 Change password here
 
-                    // Options for user
-                    String[] options = {"Update", "Delete"};
-                    new AlertDialog.Builder(this)
-                            .setTitle("Choose Action for " + selectedName)
-                            .setItems(options, (d, optionIndex) -> {
-                                if (optionIndex == 0) {
-                                    showUpdateUserDialog(selectedName, selectedEmail);
-                                } else if (optionIndex == 1) {
-                                    boolean deleted = dbHelper.deleteUser(selectedEmail);
-                                    if (deleted)
-                                        Toast.makeText(this, "User deleted", Toast.LENGTH_SHORT).show();
-                                    else
-                                        Toast.makeText(this, "Failed to delete user", Toast.LENGTH_SHORT).show();
-                                }
-                            }).show();
-                }).show();
+            if (!enteredPassword.equals(hardcodedPassword)) {
+                Toast.makeText(this, "Incorrect password", Toast.LENGTH_SHORT).show();
+                return; // stop if wrong
+            }
+
+            // Step 2: Password correct → show users
+            Cursor cursor = dbHelper.getAllUsers();
+            if (cursor.getCount() == 0) {
+                Toast.makeText(this, "No registered users found", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String[] usersArray = new String[cursor.getCount()];
+            int i = 0;
+            while (cursor.moveToNext()) {
+                String name = cursor.getString(0);
+                String email = cursor.getString(1);
+                usersArray[i] = name + " (" + email + ")";
+                i++;
+            }
+            cursor.close();
+
+            new AlertDialog.Builder(this)
+                    .setTitle("Registered Users")
+                    .setItems(usersArray, (d, whichUser) -> {
+                        Cursor c = dbHelper.getAllUsers();
+                        c.moveToPosition(whichUser);
+                        String selectedName = c.getString(0);
+                        String selectedEmail = c.getString(1);
+                        c.close();
+
+                        String[] options = {"Update", "Delete"};
+                        new AlertDialog.Builder(this)
+                                .setTitle("Choose Action for " + selectedName)
+                                .setItems(options, (d2, optionIndex) -> {
+                                    if (optionIndex == 0) {
+                                        showUpdateUserDialog(selectedName, selectedEmail);
+                                    } else if (optionIndex == 1) {
+                                        boolean deleted = dbHelper.deleteUser(selectedEmail);
+                                        if (deleted)
+                                            Toast.makeText(this, "User deleted", Toast.LENGTH_SHORT).show();
+                                        else
+                                            Toast.makeText(this, "Failed to delete user", Toast.LENGTH_SHORT).show();
+                                    }
+                                }).show();
+                    }).show();
+        });
+
+        passwordDialog.setNegativeButton("Cancel", null);
+        passwordDialog.show();
     }
 
     private void showUpdateUserDialog(String currentName, String currentEmail) {

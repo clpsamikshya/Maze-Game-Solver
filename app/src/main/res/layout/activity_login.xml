@@ -54,6 +54,7 @@
         android:minHeight="48dp"
         android:paddingVertical="12dp"
         android:textSize="16sp"
+        android:elevation="6dp"
         android:backgroundTint="#2C3E50"
         android:textColor="#FFFFFF"
         android:textAllCaps="false"/>
@@ -90,6 +91,7 @@
         android:layout_marginTop="12dp"
         android:minHeight="48dp"
         android:paddingVertical="12dp"
+        android:elevation="6dp"
         android:textSize="16sp"
         android:backgroundTint="#2C3E50"
         android:textColor="#FFFFFF"

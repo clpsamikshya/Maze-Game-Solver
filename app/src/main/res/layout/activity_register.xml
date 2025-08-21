@@ -19,23 +19,22 @@
         android:textSize="16sp"
         android:backgroundTint="#2C3E50"
         android:textColor="#FFFFFF"
+        android:elevation="6dp"
         android:textAllCaps="false"
         android:layout_gravity="start"
         android:layout_marginBottom="24dp" />
 
-
-    <!-- Page Title -->
     <TextView
         android:id="@+id/tvTitle"
         android:text="Register"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="#2C3E50"
+        android:elevation="6dp"
         android:layout_marginBottom="24dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <!-- Full Name Field -->
     <EditText
         android:id="@+id/etName"
         android:hint="Full Name"
@@ -44,13 +43,13 @@
         android:minHeight="48dp"
         android:paddingVertical="12dp"
         android:textSize="16sp"
+        android:elevation="6dp"
         android:background="@drawable/edittext_rounded"
         android:textColor="#000000"
         android:textColorHint="#000000"
         android:inputType="textPersonName"
         android:layout_marginBottom="12dp" />
 
-    <!-- Email Field -->
     <EditText
         android:id="@+id/etEmail"
         android:hint="Email Address"
@@ -59,13 +58,13 @@
         android:minHeight="48dp"
         android:paddingVertical="12dp"
         android:textSize="16sp"
+        android:elevation="6dp"
         android:background="@drawable/edittext_rounded"
         android:textColor="#000000"
         android:textColorHint="#000000"
         android:inputType="textEmailAddress"
         android:layout_marginBottom="12dp" />
 
-    <!-- Password Field -->
     <EditText
         android:id="@+id/etPassword"
         android:hint="Password"
@@ -74,13 +73,13 @@
         android:minHeight="48dp"
         android:paddingVertical="12dp"
         android:textSize="16sp"
+        android:elevation="6dp"
         android:background="@drawable/edittext_rounded"
         android:textColor="#000000"
         android:textColorHint="#000000"
         android:inputType="textPassword"
         android:layout_marginBottom="20dp" />
 
-    <!-- Register Button -->
     <Button
         android:id="@+id/btnRegister"
         android:text="Register"
@@ -91,11 +90,11 @@
         android:paddingVertical="12dp"
         android:textSize="16sp"
         android:backgroundTint="#2C3E50"
+        android:elevation="6dp"
         android:textColor="#FFFFFF"
         android:textAllCaps="false"
         android:layout_marginBottom="20dp"/>
 
-    <!-- Divider -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -104,11 +103,25 @@
         android:textSize="14sp"
         android:layout_marginBottom="20dp" />
 
-    <!-- Google Sign-In Button -->
     <com.google.android.gms.common.SignInButton
         android:id="@+id/btnGoogleSignIn"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp" />
 
+    <!-- Login Button -->
+    <Button
+        android:id="@+id/btnLogin"
+        android:text="Already have an account? Login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="48dp"
+        android:paddingVertical="12dp"
+        android:textSize="16sp"
+        android:elevation="6dp"
+
+        android:backgroundTint="#2C3E50"
+        android:textColor="#FFFFFF"
+        android:textAllCaps="false"
+        android:layout_marginTop="12dp"/>
 </LinearLayout>
