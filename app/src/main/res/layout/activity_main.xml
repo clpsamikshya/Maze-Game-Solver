@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_below="@id/tvMazeSolver"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="60dp"
         android:gravity="center"
         android:layout_centerHorizontal="true">
 
@@ -69,7 +69,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hi, User"
-        android:layout_marginTop="26dp"
+        android:layout_marginTop="50dp"
         android:textColor="#2C3E50"
         android:textSize="20sp"
         android:padding="16dp"/>
