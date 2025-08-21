@@ -64,6 +64,7 @@
             android:background="#2C3E50"
             android:textColor="#FFFFFF" />
     </LinearLayout>
+
     <TextView
         android:id="@+id/tvGreeting"
         android:layout_width="wrap_content"
