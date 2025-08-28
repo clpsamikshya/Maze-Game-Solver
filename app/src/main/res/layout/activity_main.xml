@@ -31,39 +31,52 @@
 
     <!-- Level and Moves Info -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_below="@id/tvMazeSolver"
         android:layout_marginTop="60dp"
-        android:gravity="center"
-        android:layout_centerHorizontal="true">
+        android:gravity="center_vertical"
+        android:layout_centerHorizontal="true"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:id="@+id/tvTimer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Time: 0 sec"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="start"
+            android:textColor="#2C3E50"
+            android:padding="8dp" />
 
         <TextView
             android:id="@+id/tvCurrentLevel"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Level 1"
+            android:layout_weight="1"
+            android:text="Level: 1"
             android:textSize="20sp"
             android:textStyle="bold"
             android:gravity="center"
             android:padding="12dp"
-            android:background="#2C3E50"
-            android:textColor="#FFFFFF"
-            android:layout_marginEnd="16dp" />
+            android:textColor="#2C3E50" />
 
         <TextView
             android:id="@+id/tvMoves"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Moves: 0"
             android:textSize="20sp"
             android:textStyle="bold"
-            android:gravity="center"
-            android:padding="12dp"
-            android:background="#2C3E50"
-            android:textColor="#FFFFFF" />
+            android:textColor="#2C3E50"
+            android:gravity="end"
+            android:padding="12dp" />
     </LinearLayout>
+
 
     <TextView
         android:id="@+id/tvGreeting"

@@ -28,9 +28,6 @@ public class DBHelper extends SQLiteOpenHelper {
         // Maze table
         db.execSQL("CREATE TABLE maze_table (id INTEGER PRIMARY KEY AUTOINCREMENT, level INTEGER, maze TEXT, path TEXT)");
 
-        // Custom mazes
-        db.execSQL("CREATE TABLE IF NOT EXISTS custom_mazes (id INTEGER PRIMARY KEY AUTOINCREMENT, maze_data TEXT, rows INTEGER, cols INTEGER)");
-
         // Users table
         db.execSQL("CREATE TABLE users (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -264,8 +261,5 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     // Get user ID by Google ID
-
-
-
 
 }

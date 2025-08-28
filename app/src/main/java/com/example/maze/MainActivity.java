@@ -7,19 +7,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-
 import java.util.HashSet;
 import java.util.List;
 
@@ -29,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvGreeting;
     private TextView tvCurrentLevel;
     private TextView tvMoves;
+    private TextView tvAlgorithmTime; // added timer TextView
     private MazeView mazeView;
     private Maze maze;
     private DBHelper dbHelper;
@@ -37,6 +34,10 @@ public class MainActivity extends AppCompatActivity {
     private boolean isMazeSolved = false;
     private Spinner spinnerAlgorithm;
     private int userId;
+
+    private Handler timerHandler = new Handler();
+    private Runnable timerRunnable;
+    private int algorithmSeconds = 0; // seconds elapsed for current algorithm run
 
     private static final int MAX_LEVEL = 8;
     private static final int REQUEST_CODE_LEVEL_SELECT = 100;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         tvGreeting = findViewById(R.id.tvGreeting);
         tvCurrentLevel = findViewById(R.id.tvCurrentLevel);
         tvMoves = findViewById(R.id.tvMoves);
+        tvAlgorithmTime = findViewById(R.id.tvTimer); // link timer TextView
         spinnerAlgorithm = findViewById(R.id.spinnerAlgorithm);
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
@@ -92,8 +94,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         saveLastPlayedLevel(userId, currentLevel);
-        tvCurrentLevel.setText("Level " + currentLevel);
+        tvCurrentLevel.setText("Level: " + currentLevel);
         tvMoves.setText("Moves: 0");
+        tvAlgorithmTime.setText("Time: 0 sec"); // initialize timer
         mazeSize = calculateMazeSize(currentLevel);
 
         generateMaze();
@@ -103,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
             generateMaze();
             mazeView.resetPlayer();
             tvMoves.setText("Moves: 0");
+            resetAlgorithmTimer(); // reset timer on reset
         });
 
         btnSolve.setOnClickListener(v -> solveMazeAnimated());
@@ -135,13 +139,11 @@ public class MainActivity extends AppCompatActivity {
                     .setTitle("Logout")
                     .setMessage("Are you sure you want to log out?")
                     .setPositiveButton("Yes", (dialog, which) -> {
-                        // Clear SharedPreferences
                         getSharedPreferences("LoginPrefs", MODE_PRIVATE)
                                 .edit()
                                 .clear()
                                 .apply();
 
-                        // Google Sign-Out
                         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                                 .requestEmail()
                                 .build();
@@ -149,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
 
                         mGoogleSignInClient.signOut().addOnCompleteListener(task -> {
                             mGoogleSignInClient.revokeAccess().addOnCompleteListener(task2 -> {
-                                // Redirect to LoginActivity
                                 Intent intent = new Intent(MainActivity.this, LoginActivity.class);
                                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                                 startActivity(intent);
@@ -200,7 +201,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void solveMazeAnimated() {
         String algorithm = spinnerAlgorithm.getSelectedItem().toString();
-        mazeView.setAlgorithm(algorithm.equals("Greedy First Search"));
+
+        mazeView.setAlgorithm(algorithm.equals("Greedy First Search")); // this will automatically call updateAlgorithmColors()
+
+        // Reset move count and timer for this algorithm run
+        mazeView.resetMoveCount();
+        tvMoves.setText("Moves: 0");
+        resetAlgorithmTimer();
+        startAlgorithmTimer();
 
         Solver solver = new Solver(maze);
         List<Solver.Step> steps;
@@ -229,14 +237,19 @@ public class MainActivity extends AppCompatActivity {
             final int index = i;
             handler.postDelayed(() -> {
                 Solver.Step step = steps.get(index);
+
                 mazeView.setOpenSet(step.openSet);
                 mazeView.setClosedSet(step.closedSet);
                 mazeView.setPlayerPosition(step.current);
+
                 if (step.finalPath != null) {
                     mazeView.resetAnimatedSteps();
                     for (Cell cell : step.finalPath) {
-                        mazeView.addAnimatedStep(cell);
+                        mazeView.addAnimatedStep(cell); // increments moveCount only for final path
                     }
+
+                    stopAlgorithmTimer(); // ✅ stop timer when algorithm finishes
+
                     isMazeSolved = true;
                     mazeView.setMovable(false);
                     Toast.makeText(MainActivity.this,
@@ -245,6 +258,36 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, i * delay);
         }
+    }
+
+    // Timer helper methods
+    private void startAlgorithmTimer() {
+        stopAlgorithmTimer();
+        algorithmSeconds = 0;
+        tvAlgorithmTime.setText("Time: 0 sec");
+
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                algorithmSeconds++;
+                tvAlgorithmTime.setText("Time: " + algorithmSeconds + " sec");
+                timerHandler.postDelayed(this, 1000);
+            }
+        };
+        timerHandler.postDelayed(timerRunnable, 1000);
+    }
+
+    private void stopAlgorithmTimer() {
+        if (timerRunnable != null) {
+            timerHandler.removeCallbacks(timerRunnable);
+            timerRunnable = null;
+        }
+    }
+
+    private void resetAlgorithmTimer() {
+        stopAlgorithmTimer();
+        algorithmSeconds = 0;
+        tvAlgorithmTime.setText("Time: 0 sec ");
     }
 
     private void onLevelCompleted() {
@@ -257,8 +300,9 @@ public class MainActivity extends AppCompatActivity {
             saveLastPlayedLevel(userId, currentLevel);
             mazeSize = calculateMazeSize(currentLevel);
             isMazeSolved = false;
-            tvCurrentLevel.setText("Level " + currentLevel);
+            tvCurrentLevel.setText("Level: " + currentLevel);
             tvMoves.setText("Moves: 0");
+            resetAlgorithmTimer();
             new Handler().postDelayed(this::generateMaze, 300);
         } else {
             Toast.makeText(this, "Congrats! You finished the hardest level!", Toast.LENGTH_LONG).show();
@@ -287,7 +331,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         currentLevel = savedInstanceState.getInt("currentLevel", 1);
-        tvCurrentLevel.setText("Level " + currentLevel);
+        tvCurrentLevel.setText("Level: " + currentLevel);
     }
 
     @Override
@@ -301,8 +345,9 @@ public class MainActivity extends AppCompatActivity {
                 currentLevel = selectedLevel;
                 saveLastPlayedLevel(userId, currentLevel);
                 mazeSize = calculateMazeSize(currentLevel);
-                tvCurrentLevel.setText("Level " + currentLevel);
+                tvCurrentLevel.setText("Level: " + currentLevel);
                 tvMoves.setText("Moves: 0");
+                resetAlgorithmTimer();
                 generateMaze();
             } else {
                 Toast.makeText(this, "Level is locked or invalid!", Toast.LENGTH_SHORT).show();

@@ -10,7 +10,6 @@ import android.media.MediaPlayer;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -175,16 +174,17 @@ public class MazeView extends View {
 
     private void updateAlgorithmColors() {
         if (isGreedy) {
-            openSetPaint.setColor(Color.parseColor("#3B0A2A"));
-            closedSetPaint.setColor(Color.parseColor("#3B0A2A"));
-            solvingPathPaint.setColor(Color.parseColor("#6B2D4D"));
+            openSetPaint.setColor(Color.parseColor("#3B0A2A"));        // Dark reddish-purple
+            closedSetPaint.setColor(Color.parseColor("#3B0A2A"));      // Same
+            solvingPathPaint.setColor(Color.parseColor("#6B2D4D"));    // Purple-pinkish path
         } else {
-            openSetPaint.setColor(Color.parseColor("#4D2000"));
+            openSetPaint.setColor(Color.parseColor("#4D2000"));        // Default brown
             closedSetPaint.setColor(Color.parseColor("#4D2000"));
-            solvingPathPaint.setColor(Color.parseColor("#7C4B1C"));
+            solvingPathPaint.setColor(Color.parseColor("#7C4B1C"));    // Orangey-brown path
         }
         invalidate();
     }
+
 
     public void setPath(List<Cell> path) {
         this.path = path;
@@ -193,8 +193,11 @@ public class MazeView extends View {
 
     public void addAnimatedStep(Cell cell) {
         animatedSteps.add(cell);
+        addMoveStep(); // counts only actual path steps
         invalidate();
     }
+
+
 
     public void resetAnimatedSteps() {
         animatedSteps.clear();
@@ -315,6 +318,32 @@ public class MazeView extends View {
 
         moveCount = 0;
         if (moveListener != null) moveListener.onMoveCountChanged(moveCount);
+    }
+
+    public Maze getMaze() {
+        return maze;
+    }
+
+    public void setMoveCount(int count) {
+        this.moveCount = count;
+        if (moveListener != null) {
+            moveListener.onMoveCountChanged(moveCount);
+        }
+    }
+    // Reset move count to 0
+    public void resetMoveCount() {
+        this.moveCount = 0;
+        if (moveListener != null) {
+            moveListener.onMoveCountChanged(moveCount);
+        }
+    }
+
+    // Increment move count by 1
+    public void addMoveStep() {
+        moveCount++;
+        if (moveListener != null) {
+            moveListener.onMoveCountChanged(moveCount);
+        }
     }
 
     private void checkIfMazeSolved() {
