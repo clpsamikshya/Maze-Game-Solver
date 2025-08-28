@@ -6,24 +6,24 @@ track progress, and compare their path with system-generated solutions using A* 
 🎮 Features
 
 1. Maze Generation
-     -DFS (Iterative) – uses a stack to explore and backtrack.
-     -Prim’s Algorithm – generates more randomized mazes.
+     i. DFS (Iterative) – uses a stack to explore and backtrack.
+     ii. Prim’s Algorithm – generates more randomized mazes.
 
 2. Maze Solving
-    -A* – Guarantees shortest path (Manhattan/Euclidean heuristic).
-    -Greedy Best-First Search – Faster but not always optimal.
+    i. A* – Guarantees shortest path (Manhattan/Euclidean heuristic).
+    ii. Greedy Best-First Search – Faster but not always optimal.
 
 3. Gameplay
-    -Different colors distinguish user path vs solver path
-    -Move counter & sound effects on movement
+    i. Different colors distinguish user path vs solver path
+    ii. Move counter & sound effects on movement
 
 4. Levels & Difficulty
-   -Increasing maze complexity with level progression
-   -Levels saved using SQLite (DBHelper)
+   i. Increasing maze complexity with level progression
+   ii. Levels saved using SQLite (DBHelper)
 
 5. User Management
-   -Google Sign-In integration
-   -User data storage & progress tracking
+   i. Google Sign-In integration
+   ii. User data storage & progress tracking
 
 🛠️ Tech Stack
 
@@ -32,11 +32,4 @@ track progress, and compare their path with system-generated solutions using A* 
 3. Database: SQLite (via DBHelper)
 4. UI: XML + Custom Canvas Drawing
    
-📂 Project Structure
-├── MainActivity.java        # Gameplay screen (MazeActivity)
-├── LevelSelectActivity.java # Level selection & navigation
-├── Maze.java                # Maze generation (DFS, Prim’s)
-├── Solver.java              # Maze solving (A*, Greedy)
-├── DBHelper.java            # SQLite database helper
-├── User Management          # Google Sign-In + user data
-└── res/                     # Layouts, Drawables, Sounds
+
